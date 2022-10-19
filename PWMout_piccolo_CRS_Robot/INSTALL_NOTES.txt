@@ -1,0 +1,7 @@
+To use this you need to at a minimum install DSP/BIO and c2000_6.4.12 compiler
+But I have not tried this in CCS 11.  
+I also install CCS8
+
+Install files located at
+N:\labs\me446\CCStudio8_InstallFiles\
+
