@@ -85,72 +85,72 @@
 		<link>
 			<name>28027_pwm.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/COECSL/28027_pwm.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/28027_pwm.c</locationURI>
 		</link>
 		<link>
 			<name>28027_serial.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/COECSL/28027_serial.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/28027_serial.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_Adc.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_Adc.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_Adc.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_CSMPasswords.asm</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_CSMPasswords.asm</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_CSMPasswords.asm</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_CodeStartBranch.asm</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_CodeStartBranch.asm</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_CodeStartBranch.asm</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_CpuTimers.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_CpuTimers.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_CpuTimers.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_GlobalVariableDefs.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_headers/source/DSP2802x_GlobalVariableDefs.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_GlobalVariableDefs.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_Gpio.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_Gpio.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_Gpio.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_I2C.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_I2C.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_I2C.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_PieCtrl.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_PieCtrl.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_PieCtrl.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_Sci.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_Sci.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_Sci.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_Spi.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_Spi.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_Spi.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_SysCtrl.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_SysCtrl.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_SysCtrl.c</locationURI>
 		</link>
 		<link>
 			<name>DSP2802x_usDelay.asm</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/common/v126/DSP2802x_common/source/DSP2802x_usDelay.asm</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/DSP2802x_usDelay.asm</locationURI>
 		</link>
 		<link>
 			<name>PWMout_piccolo.tcf</name>
@@ -160,12 +160,12 @@
 		<link>
 			<name>coecsl.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/COECSL/coecsl.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/coecsl.c</locationURI>
 		</link>
 		<link>
 			<name>smallprintf.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/LabDevelopment/f28027/COECSL/smallprintf.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/smallprintf.c</locationURI>
 		</link>
 		<link>
 			<name>user_PWMout_piccolo.c</name>

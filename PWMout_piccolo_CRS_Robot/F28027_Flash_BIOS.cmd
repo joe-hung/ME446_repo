@@ -1,5 +1,5 @@
 
--l C:\mike\_shared\f28027\common\v126\DSP2802x_headers\cmd\DSP2802x_Headers_BIOS.cmd
+-l DSP2802x_Headers_BIOS.cmd
 
 /**********************************************************************
 * File: f28027_BIOS_flash.cmd -- Linker command file for DSP/BIOS code
