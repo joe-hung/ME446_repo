@@ -85,7 +85,6 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="matlab|28335_RAM_lnk.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="matlab/simulink5ms_plotAndGains_sldrt_win64/tlc"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -173,7 +172,6 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="matlab|F28335.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="matlab/simulink5ms_plotAndGains_sldrt_win64/tlc"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
