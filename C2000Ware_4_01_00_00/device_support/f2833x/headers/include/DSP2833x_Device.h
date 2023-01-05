@@ -127,6 +127,10 @@ typedef float              float32;
 typedef long double        float64;
 #endif
 
+//20221021
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 //
 // Included Peripheral Header Files
 //

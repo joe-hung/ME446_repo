@@ -57,14 +57,15 @@
 // a different section.  This section will then be mapped to a load and
 // run address using the linker cmd file.
 //
-#ifdef __TI_COMPILER_VERSION__
-    #if __TI_COMPILER_VERSION__ >= 15009000
-        #pragma CODE_SECTION(InitFlash, ".TI.ramfunc");
-    #else
-        #pragma CODE_SECTION(InitFlash, "ramfuncs");
+#ifdef _FLASH
+    #ifdef __TI_COMPILER_VERSION__
+        #if __TI_COMPILER_VERSION__ >= 15009000
+            #pragma CODE_SECTION(InitFlash, ".TI.ramfunc");
+        #else
+            #pragma CODE_SECTION(InitFlash, "ramfuncs");
+        #endif
     #endif
 #endif
-
 //
 // InitSysCtrl - This function initializes the System Control registers to a 
 // known state.
