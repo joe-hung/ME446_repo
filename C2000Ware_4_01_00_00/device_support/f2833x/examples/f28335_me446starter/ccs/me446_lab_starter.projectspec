@@ -6,8 +6,8 @@
         launchWizard="False"
         linkerCommandFile=""
         >
+    <configuration name="CPU_FLASH" compilerBuildOptions="--opt_level=off -I${C2000WARE_COMMON_INCLUDE} -I${C2000WARE_HEADERS_INCLUDE} -I${PROJECT_ROOT} --define=DEBUG --define=_FLASH -ml -mt -v28 --diag_warning=225 --printf_support=full --diag_suppress=10063 --display_error_number" linkerBuildOptions="--stack_size=0x3B0  " />		
 	<configuration name="CPU_RAM" compilerBuildOptions="--opt_level=off -I${C2000WARE_COMMON_INCLUDE} -I${C2000WARE_HEADERS_INCLUDE} -I${PROJECT_ROOT} --define=DEBUG -ml -mt -v28 --diag_warning=225 --printf_support=full --diag_suppress=10063 --display_error_number" linkerBuildOptions="--stack_size=0x3B0  " />
-    <configuration name="CPU_FLASH" compilerBuildOptions="--opt_level=off -I${C2000WARE_COMMON_INCLUDE} -I${C2000WARE_HEADERS_INCLUDE} -I${PROJECT_ROOT} --define=DEBUG --define=_FLASH -ml -mt -v28 --diag_warning=225 --printf_support=full --diag_suppress=10063 --display_error_number" linkerBuildOptions="--stack_size=0x3B0  " />
     <pathVariable name="C2000WARE_COMMON_INCLUDE" path="../../../common/include/" scope="project" />
     <pathVariable name="C2000WARE_HEADERS_INCLUDE" path="../../../headers/include/" scope="project" />
     <file action="copy" path="../../../common/source/DSP2833x_ADC_cal.asm" targetDirectory="" />

@@ -427,6 +427,7 @@ __interrupt void cpu_timer0_isr(void)
 
     if (CpuTimer0.InterruptCount % 250 == 0) {
 //        GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+        UARTprint = 1;
     }
     start_SPI();
     //
