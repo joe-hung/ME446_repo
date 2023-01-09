@@ -679,6 +679,29 @@ __interrupt void RXBINT_recv_ready(void)
 }
 
 
+int UARTbeginnewdata = 0;
+int UARTdatacollect = 0;
+char UARTMessageArray[101];
+int UARTreceivelength = 0;
+
+long* Main_address[MAX_VAR_NUM];
+float Main_value[MAX_VAR_NUM];
+int Main_i = 0;
+int Main_memcount = 0;
+int MatlabCommand = 0;
+union mem_add {
+    float f;
+    long i;
+    char c[2];
+}memloc;
+
+union ptrmem_add {
+    float* f;
+    long* i;
+    char c[2];
+}ptrmemloc;
+
+
 // for SerialC
 #ifdef _FLASH
 #pragma CODE_SECTION(RXCINT_recv_ready, ".TI.ramfunc");
@@ -696,6 +719,54 @@ __interrupt void RXCINT_recv_ready(void)
     } else {
         RXCdata = RXCdata & 0x00FF;
         numRXC ++;
+
+        if (!UARTbeginnewdata) {// Only TRUE if have not yet begun a message
+            if (42 == (unsigned char)RXCdata) {// Check for start char
+                UARTdatacollect = 0;        // amount of data collected in message set to 0
+                UARTbeginnewdata = 1;       // flag to indicate we are collecting a message
+                Main_memcount = 0;
+                Main_i = 0;
+            }
+        } else {    // Filling data
+            if (0 == UARTdatacollect){
+                UARTreceivelength = ((int)RXCdata)-1; // set receive length to value of char after start char
+                UARTdatacollect++;
+            }else if (UARTdatacollect < UARTreceivelength){
+                UARTMessageArray[UARTdatacollect-1] = (char) RXCdata;
+                // If sending out float value(s), save input memory locations and values at those addresses
+                if (('0' == UARTMessageArray[0]) &&  (UARTdatacollect > 1)){
+
+                    if (Main_i == 0) {
+                        ptrmemloc.c[1] = ((UARTMessageArray[UARTdatacollect-1] & 0xFF) << 8);
+                    }
+                    if (Main_i == 1) {
+                        ptrmemloc.c[1] |= (UARTMessageArray[UARTdatacollect-1] & 0xFF);
+                    }
+                    if (Main_i == 2) {
+                        ptrmemloc.c[0] = ((UARTMessageArray[UARTdatacollect-1] & 0xFF) << 8);
+                    }
+                    if (3 == Main_i){
+                        ptrmemloc.c[0] |= (UARTMessageArray[UARTdatacollect-1] & 0xFF);
+
+                        Main_address[Main_memcount]=ptrmemloc.i;
+                        Main_value[Main_memcount]=*ptrmemloc.f;
+
+                        Main_i = 0;
+                        Main_memcount++;
+                    }else{
+                        Main_i++;
+                    }
+                }
+                UARTdatacollect++;
+            }
+            if (UARTdatacollect == UARTreceivelength){  // If input receive length is reached
+                UARTbeginnewdata = 0;   // Reset the flag
+                UARTdatacollect = 0;    // Reset the number of chars collected
+                MatlabCommand = 1;
+
+            }
+        }
+
 
     }
 

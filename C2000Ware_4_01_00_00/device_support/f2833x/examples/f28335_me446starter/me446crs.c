@@ -229,6 +229,29 @@ float Main_u3_old = 0;
 int shutoffEnc5error  = 0;
 int numSWIcalls = 0;
 
+char Main_SendArray[128];
+char Main_SendArray2[128];
+float Main_tempf=0;
+int Main_j = 0;
+extern int Main_i;
+extern int MatlabCommand;
+extern int Main_memcount;
+extern char UARTMessageArray[101];
+extern int UARTreceivelength;
+extern union mem_add {
+    float f;
+    long i;
+    char c[2];
+}memloc;
+
+extern union ptrmem_add {
+    float* f;
+    long* i;
+    char c[2];
+}ptrmemloc;
+
+int32_t timessend = 0;
+int32_t timelastsend = 0;
 //
 // Main
 //
@@ -292,6 +315,8 @@ void main(void)
     PieVectTable.SPIRXINTA = &SPI_RXint;
     PieVectTable.SCIRXINTB = &RXBINT_recv_ready;
     PieVectTable.SCITXINTB = &TXBINT_data_sent;
+    PieVectTable.SCIRXINTC = &RXCINT_recv_ready;
+    PieVectTable.SCITXINTC = &TXCINT_data_sent;
     PieVectTable.rsvd12_6 = &SWI_isr;
     EDIS;    // This is needed to disable write to EALLOW protected registers
 
@@ -337,6 +362,7 @@ void main(void)
 
     init_serialSCIA(&SerialA,115200);
     init_serialSCIB(&SerialB,115200);
+    init_serialSCIC(&SerialC,115200);
 
     init_PWMandDIR(1);
     init_PWMandDIR(2);
@@ -414,6 +440,72 @@ void main(void)
             UARTprint = 0;
             printing();
             //            serial_printf(&SerialA, "%.2f %.2f,%.2f   \n\r",printtheta1motor*180/PI,printtheta2motor*180/PI,printtheta3motor*180/PI);
+
+        }
+        if (MatlabCommand == 1) {
+            MatlabCommand = 0;
+
+            if ('2' == UARTMessageArray[0]){
+
+                memloc.c[1] = NULL;
+                memloc.c[0] = ((UARTMessageArray[5]&0xFF)<<8);
+                memloc.c[0] |= (UARTMessageArray[6]&0xFF);
+                Main_memcount = memloc.i;
+                ptrmemloc.c[1] = ((UARTMessageArray[1]&0xFF)<<8);
+                ptrmemloc.c[1] |= (UARTMessageArray[2]&0xFF);
+                ptrmemloc.c[0] = ((UARTMessageArray[3]&0xFF)<<8);
+                ptrmemloc.c[0] |= (UARTMessageArray[4]&0xFF);
+                Main_SendArray[0]='*';
+                Main_SendArray[1]=3+Main_memcount;
+                Main_SendArray[2]='3';
+
+                serial_sendSCIC(&SerialC, Main_SendArray, 3);
+
+                for (Main_i = 0; Main_i < Main_memcount;Main_i++){
+                    Main_tempf = *ptrmemloc.f;
+                    memloc.f = Main_tempf;
+                    Main_SendArray2[0+Main_j*4] =  (memloc.c[0]&0xFF);
+                    Main_SendArray2[1+Main_j*4] =  ((memloc.c[0]>>8)&0xFF);
+                    Main_SendArray2[2+Main_j*4] =  (memloc.c[1]&0xFF);
+                    Main_SendArray2[3+Main_j*4] =  ((memloc.c[1]>>8)&0xFF);
+                    memloc.c[1] = ptrmemloc.c[1];
+                    memloc.c[0] = ptrmemloc.c[0];
+                    memloc.i+=2;  // was plus 4
+                    ptrmemloc.c[1]=memloc.c[1];
+                    ptrmemloc.c[0]=memloc.c[0];
+                    Main_j++;
+                    if (32 == Main_j){
+                        memcpy(Main_SendArray,Main_SendArray2,128);
+                        serial_sendSCIC(&SerialC, Main_SendArray, 128);
+                        timessend++;
+                        Main_j = 0;
+                    }
+                }
+                if (Main_j != 0){
+                    serial_sendSCIC(&SerialC, Main_SendArray2, (Main_memcount%32)*4);
+                    timelastsend++;
+                    Main_j = 0;
+                }
+                // Case '3' : Write float value to memory address (big-endian received address,
+                //      little-endian received value)
+            }else if ('3' == UARTMessageArray[0]){
+                for (Main_i = 0; Main_i < (UARTreceivelength - 2)/8;Main_i++){
+
+                    ptrmemloc.c[1] = ((UARTMessageArray[1+8*Main_i]&0xFF)<<8);
+                    ptrmemloc.c[1] |= (UARTMessageArray[2+8*Main_i]&0xFF);
+                    ptrmemloc.c[0] = ((UARTMessageArray[3+8*Main_i]&0xFF)<<8);
+                    ptrmemloc.c[0] |= (UARTMessageArray[4+8*Main_i]&0xFF);
+
+                    memloc.c[1] = ((UARTMessageArray[8+8*Main_i]&0xFF)<<8);
+                    memloc.c[1] |= (UARTMessageArray[7+8*Main_i]&0xFF);
+                    memloc.c[0] = ((UARTMessageArray[6+8*Main_i]&0xFF)<<8);
+                    memloc.c[0] |= (UARTMessageArray[5+8*Main_i]&0xFF);
+
+                    *ptrmemloc.i = memloc.i;
+
+                }
+
+            }
         }
     }
 }

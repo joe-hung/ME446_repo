@@ -23,9 +23,9 @@ if length(s) > 0
 end
 clear s;
 
-filename = dir('../CRSRobotProject/debug/*.map');
+filename = dir('../CPU_RAM/*.map');
 
-map = parseMap(strcat('../CRSRobotProject/debug/',filename.name))
+map = parseMap(strcat('../CPU_RAM/',filename.name))
 
 memloc = 0;
 arrsize = size(map);
@@ -47,8 +47,9 @@ hex_str = '2A0932'; % header
 hex_str = strcat(hex_str,memloc,hexsize);
 char_str = char(sscanf(hex_str,'%2X').');
 
-s = serial('COM1');
-set(s,'BaudRate',115200);
+% s = serial('COM1');
+% set(s,'BaudRate',115200);
+s = serialport("COM1",115200);
 s.InputBufferSize = 15000;
 fopen(s);
 fwrite(s,char_str);
@@ -57,9 +58,14 @@ count = 0;
 while 1
     inchar = fread(s,1);
     if inchar == 42
+
         inchar = fread(s,1);
+        disp(inchar)
         inchar = fread(s,1);
+
+        disp('Got 42')
         if inchar == 51
+            disp('Got 51')
             out3 = fread(s,varsize,'float32');
             break;
         end
@@ -70,6 +76,4 @@ while 1
     end
 end
 
-fclose(s)
-delete(s)
 clear s

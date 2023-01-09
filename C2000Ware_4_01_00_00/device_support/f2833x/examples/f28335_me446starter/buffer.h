@@ -4,7 +4,7 @@
 
 #define BUF_SIZESCIA		(136)
 #define BUF_SIZESCIB		(136)
-#define BUF_SIZESCIC		(136)
+#define BUF_SIZESCIC		(2000)
 
 // For SCIA
 typedef volatile struct bufferSCIA_s {

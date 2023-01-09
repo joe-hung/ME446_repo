@@ -62,6 +62,7 @@ uint16_t init_serialSCIC(serialSCIC_t *s, Uint32 baud);
 void uninit_serialSCIC(serialSCIC_t *s);
 uint16_t serial_sendSCIC(serialSCIC_t *s, char *data, Uint16 len);
 
+#define MAX_VAR_NUM 10
 
 
 __interrupt void TXAINT_data_sent(void);
