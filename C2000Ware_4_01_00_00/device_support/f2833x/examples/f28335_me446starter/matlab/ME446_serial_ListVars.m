@@ -13,10 +13,10 @@ if length(s) > 0
     fclose(s);
 end
 clear s;
+disp("!!Make Sure CCS is configured to Compile for FLASH for this function to work!!")
+filename = dir('../CPU_FLASH/*.map');
 
-filename = dir('../CRSRobotProject/debug/*.map');
-
-map = parseMap(strcat('../CRSRobotProject/debug/',filename.name))
+map = parseMap(strcat('../CPU_FLASH/',filename.name))
 
 memloc = 0;
 arrsize = size(map);
