@@ -34,12 +34,25 @@ float printtheta1motor = 0;
 float printtheta2motor = 0;
 float printtheta3motor = 0;
 
+float printtheta1DH = 0;
+float printtheta2DH = 0;
+float printtheta3DH = 0;
+
 // Assign these float to the values you would like to plot in Simulink
 float Simulink_PlotVar1 = 0;
 float Simulink_PlotVar2 = 0;
 float Simulink_PlotVar3 = 0;
 float Simulink_PlotVar4 = 0;
 
+// Coefficient of DH params from motor
+float C1 = 0;
+float C2 = 1;
+float C3 = PI/2.0;
+
+// position of end-effector
+float X;
+float Y;
+float Z;
 
 // This function is called every 1 ms
 void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float *tau2,float *tau3, int error) {
@@ -47,7 +60,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 
     *tau1 = 0;
     *tau2 = 0;
-    *tau3 = 1;
+    *tau3 = 0;
 
     //Motor torque limitation(Max: 5 Min: -5)
 
@@ -75,15 +88,31 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     printtheta2motor = theta2motor;
     printtheta3motor = theta3motor;
 
+    // DH params
+    printtheta1DH = theta1motor;
+    printtheta2DH = theta2motor - PI/2.0;
+    printtheta3DH = theta3motor - theta2motor + PI/2.0;
+
     Simulink_PlotVar1 = theta1motor;
     Simulink_PlotVar2 = theta2motor;
     Simulink_PlotVar3 = theta3motor;
     Simulink_PlotVar4 = 0;
 
+    float theta_1 = printtheta1DH;
+    float theta_2 = printtheta2DH;
+    float theta_3 = printtheta3DH;
+
+    X = (127*cos(theta_1)*(cos(theta_2 + theta_3) + cos(theta_2)))/500.0;
+    Y = (127*sin(theta_1)*(cos(theta_2 + theta_3) + cos(theta_2)))/500.0;
+    Z = 127/500.0 - (127*sin(theta_2))/500.0 - (127*sin(theta_2 + theta_3))/500.0;
+
     mycount++;
 }
 
+
 void printing(void){
-    serial_printf(&SerialA, "%.2f %.2f,%.2f   \n\r",printtheta1motor*180/PI,printtheta2motor*180/PI,printtheta3motor*180/PI);
+    serial_printf(&SerialA, "Motor        %6.2f %6.2f %6.2f   \n\r \n\r",printtheta1motor*180/PI,printtheta2motor*180/PI,printtheta3motor*180/PI);
+    serial_printf(&SerialA, "DH           %6.2f %6.2f %6.2f   \n\r \n\r",printtheta1DH*180/PI,printtheta2DH*180/PI,printtheta3DH*180/PI);
+    serial_printf(&SerialA, "End-Effector %6.2f %6.2f %6.2f   \n\r \n\r",X,Y,Z);
 }
 

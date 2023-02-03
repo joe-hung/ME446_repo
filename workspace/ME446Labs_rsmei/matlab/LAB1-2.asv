@@ -1,0 +1,10 @@
+function A = A(theta,alpha, a, d)
+    theta = sym(theta);
+    alpha = sym(alpha);
+    a = sym(a);
+    d = sym(d);
+    A = [ cos(theta), -sin(theta)*cos(sym(alpha)), sin(theta)*sin(alpha), a*cos(theta);
+           cos(theta), , , ;
+           , , , ;
+           , , ,  ]
+end
