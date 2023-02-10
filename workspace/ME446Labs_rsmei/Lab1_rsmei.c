@@ -37,6 +37,9 @@ float printtheta3motor = 0;
 float printtheta1DH = 0;
 float printtheta2DH = 0;
 float printtheta3DH = 0;
+float printtheta1_IK = 0;
+float printtheta2_IK = 0;
+float printtheta3_IK = 0;
 
 // Assign these float to the values you would like to plot in Simulink
 float Simulink_PlotVar1 = 0;
@@ -106,13 +109,32 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     Y = (127*sin(theta_1)*(cos(theta_2 + theta_3) + cos(theta_2)))/500.0;
     Z = 127/500.0 - (127*sin(theta_2))/500.0 - (127*sin(theta_2 + theta_3))/500.0;
 
+    float theta1_DH = atan2(Y,X);
+    float theta2_DH;
+    float D = (X*X + Y*Y + (Z - 0.254)*(Z - 0.254) - 2*0.254*0.254)/(2*0.254*0.254);
+    float theta3_DH;
+    float temp_theta3;
+    temp_theta3 = -atan2(sqrt(1-D*D),D);
+    if (temp_theta3 > 0)
+        theta3_DH = temp_theta3;
+    else
+        theta3_DH = -atan2(-sqrt(1-D*D),D);
+    theta2_DH = -(atan2(Z-0.254,sqrt(X*X+Y*Y)) + atan2(0.254*sin(theta3_DH),0.254*cos(theta3_DH)+0.254));
+
+    printtheta1_IK = theta1_DH;
+    printtheta2_IK = theta2_DH + PI/2.0;
+    printtheta3_IK = theta3_DH + printtheta2_IK - PI/2.0;
+
+
+
     mycount++;
 }
 
 
 void printing(void){
     serial_printf(&SerialA, "Motor        %6.2f %6.2f %6.2f   \n\r \n\r",printtheta1motor*180/PI,printtheta2motor*180/PI,printtheta3motor*180/PI);
-    serial_printf(&SerialA, "DH           %6.2f %6.2f %6.2f   \n\r \n\r",printtheta1DH*180/PI,printtheta2DH*180/PI,printtheta3DH*180/PI);
+//    serial_printf(&SerialA, "DH           %6.2f %6.2f %6.2f   \n\r \n\r",printtheta1DH*180/PI,printtheta2DH*180/PI,printtheta3DH*180/PI);
+    serial_printf(&SerialA, "motor_IK     %6.2f %6.2f %6.2f   \n\r \n\r",printtheta1_IK*180/PI,printtheta2_IK*180/PI,printtheta3_IK*180/PI);
     serial_printf(&SerialA, "End-Effector %6.2f %6.2f %6.2f   \n\r \n\r",X,Y,Z);
 }
 
