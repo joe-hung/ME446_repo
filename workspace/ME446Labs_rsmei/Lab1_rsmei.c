@@ -7,8 +7,8 @@
 #define GRAV        9.81
 
 // These two offsets are only used in the main file user_CRSRobot.c  You just need to create them here and find the correct offset and then these offset will adjust the encoder readings
-float offset_Enc2_rad = -0.454134671;//0;//0.41992622; //-0.37
-float offset_Enc3_rad = 0.24347343;//0;//-0.271049633; //0.27
+float offset_Enc2_rad = -0.454134671;//0;
+float offset_Enc3_rad = 0.24347343;//0;
 
 
 // Your global varialbes.
@@ -37,6 +37,7 @@ float printtheta3motor = 0;
 float printtheta1DH = 0;
 float printtheta2DH = 0;
 float printtheta3DH = 0;
+
 float printtheta1_IK = 0;
 float printtheta2_IK = 0;
 float printtheta3_IK = 0;
@@ -53,9 +54,10 @@ float C2 = 1;
 float C3 = PI/2.0;
 
 // position of end-effector
-float X;
-float Y;
-float Z;
+float X =0;
+float Y =0;
+float Z =0;
+float temp_theta3 = 0;
 
 // This function is called every 1 ms
 void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float *tau2,float *tau3, int error) {
@@ -91,7 +93,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     printtheta2motor = theta2motor;
     printtheta3motor = theta3motor;
 
-    // DH params
+    // DH angles
     printtheta1DH = theta1motor;
     printtheta2DH = theta2motor - PI/2.0;
     printtheta3DH = theta3motor - theta2motor + PI/2.0;
@@ -105,27 +107,30 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     float theta_2 = printtheta2DH;
     float theta_3 = printtheta3DH;
 
+    // forward kinematics
     X = (127*cos(theta_1)*(cos(theta_2 + theta_3) + cos(theta_2)))/500.0;
     Y = (127*sin(theta_1)*(cos(theta_2 + theta_3) + cos(theta_2)))/500.0;
     Z = 127/500.0 - (127*sin(theta_2))/500.0 - (127*sin(theta_2 + theta_3))/500.0;
 
+    // inverse kinematic for DH angle
     float theta1_DH = atan2(Y,X);
     float theta2_DH;
     float D = (X*X + Y*Y + (Z - 0.254)*(Z - 0.254) - 2*0.254*0.254)/(2*0.254*0.254);
     float theta3_DH;
-    float temp_theta3;
-    temp_theta3 = -atan2(sqrt(1-D*D),D);
-    if (temp_theta3 > 0)
-        theta3_DH = temp_theta3;
+
+
+    // choose elbow-up solution
+    temp_theta3 = -atan2(sqrt(1-D*D),D);                                        // first solution, using +sin(-theta3DH)
+    if (temp_theta3 > 0)                                                        // if the first solution we found is a positive angle
+        theta3_DH = temp_theta3;                                                // let our IK solution to be the first
     else
-        theta3_DH = -atan2(-sqrt(1-D*D),D);
+        theta3_DH = -atan2(-sqrt(1-D*D),D);                                     // second solution, using -sin(-theta3DH)
     theta2_DH = -(atan2(Z-0.254,sqrt(X*X+Y*Y)) + atan2(0.254*sin(theta3_DH),0.254*cos(theta3_DH)+0.254));
 
+    // transition from DH angle to motor angle
     printtheta1_IK = theta1_DH;
     printtheta2_IK = theta2_DH + PI/2.0;
     printtheta3_IK = theta3_DH + printtheta2_IK - PI/2.0;
-
-
 
     mycount++;
 }
