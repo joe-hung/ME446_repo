@@ -60,21 +60,37 @@ float Z =0;
 float temp_theta3 = 0;
 
 float Kp1 = 20;
-float Kp2 = 20;
-float Kp3 = 20;
+float Kp1s = 20;
+float Kp2 = 35;
+float Kp2s = 40;
+float Kp3 = 100;
+float Kp3s = 100;
 
 float Kd1 = 1.5;
 float Kd2 = 1.5;
 float Kd3 = 1.5;
 
+float Kd1s = 1.5;
+float Kd2s = 1.5;
+float Kd3s = 1.5;
+ //Kp3s: short move
+
+float KI1 = 0;
+float KI2 = 250;
+float KI3 = 400;
+
+
 float error1 = 0;
 float error1_old = 0;
+float I1 = 0;
 
 float error2 = 0;
 float error2_old = 0;
+float I2 = 0;
 
 float error3 = 0;
 float error3_old = 0;
+float I3 = 0;
 
 float theta1_desire = 0;
 float theta2_desire = 0;
@@ -99,6 +115,9 @@ float theta3_dot_f = 0;
 float theta3_dot_old = 0;
 float theta3_dot_oldold = 0;
 
+float ethresh1 = 0.02;
+float ethresh2 = 0.02;
+float ethresh3 = 0.02;
 
 // This function is called every 1 ms
 void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float *tau2,float *tau3, int error) {
@@ -149,11 +168,11 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     }
 
     // state
-    theta2_dot = (theta2motor - theta2_old) / 0.001;
-    theta2_dot_f = (theta2_dot + theta2_dot_old + theta2_dot_oldold)/3.0;
-    theta2_dot_oldold = theta2_dot_old;
-    theta2_dot_old = theta2_dot_f;
-    theta2_old = theta2motor;
+    theta1_dot = (theta1motor - theta1_old) / 0.001;
+    theta1_dot_f = (theta1_dot + theta1_dot_old + theta1_dot_oldold)/1.0;
+    theta1_dot_oldold = theta1_dot_old;
+    theta1_dot_old = theta1_dot_f;
+    theta1_old = theta1motor;
 
 
     theta2_dot = (theta2motor - theta2_old) / 0.001;
@@ -168,14 +187,59 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     theta3_dot_old = theta3_dot_f;
     theta3_old = theta3motor;
 
-
+    error1 = theta1_desire - theta1motor;
+    I1 = I1 + 0.001*(error1 + error1_old)/1.0;
+    if (fabs(error1) <  ethresh1)
+    {
+        *tau1 = Kp1s * error1 - Kd1s * theta1_dot_f + KI1*I1;
+    }
+    else
+    {
+        *tau1 = Kp1 * error1 - Kd1 * theta1_dot_f;
+        I1 = 0;
+    }
+    if (*tau1 > 5)
+        *tau1 = 5;
+    if (*tau1 < -5)
+        *tau1 = -5;
+    error1_old = error1;
 
 
     error2 = theta2_desire - theta2motor;
-    *tau2 = Kp2 * error2 - Kd2 * theta2_dot_f;
+    I2 = I2 + 0.001*(error2 + error2_old)/2.0;
+    if (fabs(error2) <  ethresh2)
+    {
+        *tau2 = Kp2s * error2 - Kd2s * theta2_dot_f + KI2*I2;
+    }
+    else
+    {
+        *tau2 = Kp2 * error2 - Kd2 * theta2_dot_f;
+        I2 = 0;
+    }
+    if (*tau2 > 5)
+        *tau2 = 5;
+    if (*tau2 < -5)
+        *tau2 = -5;
+    error2_old = error2;
+
 
     error3 = theta3_desire - theta3motor;
-    *tau3 = Kp3 * error3 - Kd3 * theta3_dot_f;
+    I3 = I3 + 0.001*(error3 + error3_old)/2.0;
+    if (fabs(error3) <  ethresh3)
+    {
+        *tau3 = Kp3s * error3 - Kd3s * theta3_dot_f + KI3*I3;
+    }
+    else
+    {
+        *tau3 = Kp3 * error3 - Kd3 * theta3_dot_f;
+        I3 = 0;
+    }
+
+    if (*tau3 > 5)
+        *tau3 = 5;
+    if (*tau3 < -5)
+        *tau3 = -5;
+    error3_old = error3;
 
 
 
@@ -190,10 +254,9 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     printtheta3DH = theta3motor - theta2motor + PI/2.0;
 
     Simulink_PlotVar1 = theta1motor;
-    Simulink_PlotVar2 = theta2motor;
+    Simulink_PlotVar2 = theta1_desire;
     Simulink_PlotVar3 = theta3motor;
-    Simulink_PlotVar4 = theta2_desire;
-
+    Simulink_PlotVar4 = theta3_desire;
     float theta_1 = printtheta1DH;
     float theta_2 = printtheta2DH;
     float theta_3 = printtheta3DH;
