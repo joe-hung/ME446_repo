@@ -1,0 +1,15 @@
+function result = LAB2_f(t)
+    
+    if mod(t,2) == 0
+        theta_d = 1.5*(t^2) - t^3;
+        theta_d_dot = 3*t - 3*t^2;
+        theta_d_dot2 = 3 - 6*t;
+    else
+        theta_d = 1.5*(t^2) - t^3;
+        theta_d_dot = 3*t - 3*t^2;
+        theta_d_dot2 = 3 - 6*t;
+    end
+
+    result = [theta_d; theta_d_dot; theta_d_dot2];
+    
+end
