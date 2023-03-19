@@ -1,4 +1,24 @@
-function result = LAB2_f(t)
+
+result = zeros(3,21);
+
+
+time = 0:0.1:2;
+
+for index=1:21
+    result(:,index) = cubic(time(index));
+end
+
+
+plot(time,result)
+% axis equal %Trick to mkae three axis proportional
+grid on % Draw a light grid in the background of the figure axes
+xlabel('Time [s]')
+
+legend('theta (rad)', 'theta-dot (rad/s)', 'theta-dotdot (rad/s^2)')
+
+
+
+function result = cubic(t)
     
     if t < 1
         theta_d = 1.5*(t^2) - t^3;
@@ -18,9 +38,4 @@ function result = LAB2_f(t)
 
     result = [theta_d; theta_d_dot; theta_d_dot2];
     
-end
-
-for t=0:0.1:2
-    result(:,idex) = LAB2_f(t)
-    idex = idex+1
 end

@@ -83,14 +83,17 @@ float KI3 = 400;
 float error1 = 0;
 float error1_old = 0;
 float I1 = 0;
+float I1_update = 0;
 
 float error2 = 0;
 float error2_old = 0;
 float I2 = 0;
+float I2_update = 0;
 
 float error3 = 0;
 float error3_old = 0;
 float I3 = 0;
+float I3_update = 0;
 
 float J1 = 0.0167;
 float J2 = 0.03;
@@ -132,6 +135,9 @@ float ethresh1 = 0.02;
 float ethresh2 = 0.02;
 float ethresh3 = 0.02;
 
+float tau1_temp = 0;
+float tau2_temp = 0;
+float tau3_temp = 0;
 
 void cubic1(float t)
 {
@@ -148,24 +154,24 @@ void cubic1(float t)
     }
     if (t > 1)
     {
-        a0 = 0;
-        a1 = 0;
-        a2 = PI/3.0;
-        a3 = -2*PI/9.0;
+        a0 = PI/2.0;
+        a1 = -6*PI/5.0;
+        a2 = 9*PI/10.0;
+        a3 = -PI/5.0;
     }
     if (t > 2)
     {
-        a0 = PI/9.0;
+        a0 = PI/10.0;
         a1 = 0;
         a2 = 0;
         a3 = 0;
     }
     if (t > 3)
     {
-        a0 = PI/9.0;
-        a1 = 0;
-        a2 = -PI/3.0;
-        a3 = 2*PI/9.0;
+        a0 = -8*PI;
+        a1 = 36*PI/5.0;
+        a2 = -21*PI/10.0;
+        a3 = PI/5.0;
     }
 
     theta1_desire = a0 + a1*t + a2*t*t +  a3*t*t*t;
@@ -192,27 +198,27 @@ void cubic2(float t)
         a0 = PI/12.0;
         a1 = 0;
         a2 = PI/2.0;
-        a3 = PI/3.0;
+        a3 = -PI/3.0;
     }
     if (t > 1)
     {
-        a0 = PI/4.0;
-        a1 = 0;
-        a2 = -PI/4.0;
+        a0 = -PI/6.0;
+        a1 = PI;
+        a2 = -3*PI/4.0;
         a3 = PI/6.0;
     }
     if (t > 2)
     {
-        a0 = PI/6.0;
-        a1 = 0;
-        a2 = 5*PI/12.0;
+        a0 = 73*PI/18.0;
+        a1 = -5*PI;
+        a2 = 25*PI/12.0;
         a3 = -5*PI/18.0;
     }
     if (t > 3)
     {
-        a0 = 11*PI/36.0;
-        a1 = 0;
-        a2 = -2*PI/3.0;
+        a0 = -637*PI/36.0;
+        a1 = 16*PI;
+        a2 = -14*PI/3.0;
         a3 = 4*PI/9.0;
     }
 
@@ -239,29 +245,29 @@ void cubic3(float t)
     {
         a0 = 2*PI/9.0;
         a1 = 0;
-        a2 = 5*PI/12.0;
-        a3 = -5*PI/18.0;
+        a2 = PI/3.0;
+        a3 = -2*PI/9.0;
     }
     if (t > 1)
     {
-        a0 = 13*PI/35.0;
-        a1 = 0;
-        a2 = -51*PI/140.0;
-        a3 = 17*PI/70.0;
+        a0 = -PI/12.0;
+        a1 = PI;
+        a2 = -3*PI/4.0;
+        a3 = PI/6.0;
     }
     if (t > 2)
     {
-        a0 = PI/4.0;
-        a1 = 0;
-        a2 = 51*PI/140.0;
-        a3 = -17*PI/70.0;
+        a0 = 121*PI/36.0;
+        a1 = -4*PI;
+        a2 = 5*PI/3.0;
+        a3 = -2*PI/9.0;
     }
     if (t > 3)
     {
-        a0 = 13*PI/350.0;
-        a1 = 0;
-        a2 = -583*PI/1050.0;
-        a3 = -583*PI/1575.0;
+        a0 = -98*PI/9.0;
+        a1 = 10*PI;
+        a2 = -35*PI/12.0;
+        a3 = 5*PI/18.0;
     }
 
     theta3_desire = a0 + a1*t + a2*t*t +  a3*t*t*t;
@@ -276,6 +282,37 @@ void cubic3(float t)
     }
 }
 
+void fun(float t)
+{
+    float a = 0.15;
+    float X = 0.26;
+    float Y = 0;
+    float Z = 0;
+
+    Y = a*cos(t)/(1+(sin(t)*sin(t)));
+    Z = a*(sin(t)*cos(t))/(1+sin(t)*sin(t)) + 0.4;
+
+    // inverse kinematic for DH angle
+    float theta1_DH = atan2(Y,X);
+    float theta2_DH;
+    float D = (X*X + Y*Y + (Z - 0.254)*(Z - 0.254) - 2*0.254*0.254)/(2*0.254*0.254);
+    float theta3_DH;
+
+
+    // choose elbow-up solution
+    temp_theta3 = -atan2(sqrt(1-D*D),D);                                        // first solution, using +sin(-theta3DH)
+    if (temp_theta3 > 0)                                                        // if the first solution we found is a positive angle
+        theta3_DH = temp_theta3;                                                // let our IK solution to be the first
+    else
+        theta3_DH = -atan2(-sqrt(1-D*D),D);                                     // second solution, using -sin(-theta3DH)
+    theta2_DH = -(atan2(Z-0.254,sqrt(X*X+Y*Y)) + atan2(0.254*sin(theta3_DH),0.254*cos(theta3_DH)+0.254));
+
+    theta1_desire = theta1_DH;
+    theta2_desire = theta2_DH + PI/2.0;
+    theta3_desire = theta3_DH + theta2_desire - PI/2.0;
+
+}
+
 // This function is called every 1 ms
 void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float *tau2,float *tau3, int error) {
 
@@ -288,23 +325,24 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 //            if(theta1_desire > 0.05)
 //                theta1_desire = 0;
 //            else
-//                theta1_desire = 0.2;
-
+//                theta1_desire = 0.52;
+//
 //            if(theta2_desire > 0.1)
 //                theta2_desire = 0;
 //            else
-//                theta2_desire = 0;// 0.25;
+//                theta2_desire = 0.52;// 0.25;
 //
 //            if(theta3_desire > 0.1)
 //                theta3_desire = 0;
 //            else
-//                theta3_desire = 0;//0.25;
+//                theta3_desire = 0.52;//0.25;
 //
 //        }
-    cubic1((mycount%4000)/1000.0);
-    cubic2((mycount%4000)/1000.0);
-    cubic3((mycount%4000)/1000.0);
+//    cubic1((mycount%4000)/1000.0);
+//    cubic2((mycount%4000)/1000.0);
+//    cubic3((mycount%4000)/1000.0);
 
+    fun( (mycount%10000)*0.001*2*PI/10 );
     //Motor torque limitation(Max: 5 Min: -5)
 
     // save past states
@@ -347,64 +385,96 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     theta3_old = theta3motor;
 
 //    error1 = theta1_desire - theta1motor;
+
+
     error1 = theta1_desire - theta1motor;
-    I1 = I1 + 0.001*(error1 + error1_old)/2.0;
+    I1_update = I1 + 0.001*(error1 + error1_old)/2.0;
     if (fabs(error1) <  ethresh1)
     {
 
-//        *tau1 = Kp1s * error1 - Kd1s * theta1_dot_f + KI1*I1;
-        *tau1 = J1*theta1_desire_dotdot + Kp1s * (theta1_desire - theta1motor) + Kd1s*(theta1_desire_dot-theta1_dot_f) + KI1*I1;
+        tau1_temp = Kp1s * error1 - Kd1s * theta1_dot_f + KI1*I1_update;
+//        *tau1 = J1*theta1_desire_dotdot + Kp1s * (theta1_desire - theta1motor) + Kd1s*(theta1_desire_dot-theta1_dot_f) + KI1*I1;
     }
     else
     {
-//        *tau1 = Kp1 * error1 - Kd1 * theta1_dot_f;
-        *tau1 = J1*theta1_desire_dotdot + Kp1s * (theta1_desire - theta1motor) + Kd1s*(theta1_desire_dot-theta1_dot_f);
+        tau1_temp = Kp1 * error1 - Kd1 * theta1_dot_f;
+//        *tau1 = J1*theta1_desire_dotdot + Kp1s * (theta1_desire - theta1motor) + Kd1s*(theta1_desire_dot-theta1_dot_f);
         I1 = 0;
+        I1_update = 0;
     }
 
-    if (*tau1 > 5)
-        *tau1 = 5;
-    if (*tau1 < -5)
-        *tau1 = -5;
+    if (tau1_temp > 5)
+    {
+        tau1_temp = 5;
+        I1_update = I1;
+    }
+    if (tau1_temp < -5)
+    {
+        tau1_temp = -5;
+        I1_update = I1;
+    }
+    *tau1 = tau1_temp;
     error1_old = error1;
+    I1 = I1_update;
 
 
     error2 = theta2_desire - theta2motor;
-    I2 = I2 + 0.001*(error2 + error2_old)/2.0;
+    I2_update = I2 + 0.001*(error2 + error2_old)/2.0;
     if (fabs(error2) <  ethresh2)
     {
-        *tau2 = J2*theta2_desire_dotdot + Kp2s * (theta2_desire - theta2motor) + Kd2s*(theta2_desire_dot-theta2_dot_f) + KI2*I2;
+        tau2_temp = Kp2s * error2 - Kd2s * theta2_dot_f + KI2*I2_update;
+//        *tau2 = J2*theta2_desire_dotdot + Kp2s * (theta2_desire - theta2motor) + Kd2s*(theta2_desire_dot-theta2_dot_f) + KI2*I2;
     }
     else
     {
-        *tau2 = J2*theta2_desire_dotdot + Kp2s * (theta2_desire - theta2motor) + Kd2s*(theta2_desire_dot-theta2_dot_f);
+        tau2_temp = Kp2 * error2 - Kd2 * theta2_dot_f;
+//        *tau2 = J2*theta2_desire_dotdot + Kp2s * (theta2_desire - theta2motor) + Kd2s*(theta2_desire_dot-theta2_dot_f);
         I2 = 0;
+        I2_update = 0;
     }
-    if (*tau2 > 5)
-        *tau2 = 5;
-    if (*tau2 < -5)
-        *tau2 = -5;
+    if (tau2_temp > 5)
+    {
+        tau2_temp = 5;
+        I2_update = I2;
+    }
+    if (tau2_temp < -5)
+    {
+        tau2_temp = -5;
+        I2_update = I2;
+    }
+    *tau2 = tau2_temp;
     error2_old = error2;
+    I2 = I2_update;
 
 
     error3 = theta3_desire - theta3motor;
-    I3 = I3 + 0.001*(error3 + error3_old)/2.0;
+    I3_update = I3 + 0.001*(error3 + error3_old)/2.0;
     if (fabs(error3) <  ethresh3)
     {
-        *tau3 = J3*theta3_desire_dotdot + Kp3s * (theta3_desire - theta3motor) + Kd3s*(theta3_desire_dot-theta3_dot_f) + KI3*I3;
+        tau3_temp = Kp3s * error3 - Kd3s * theta3_dot_f + KI3*I3_update;
+//        *tau3 = J3*theta3_desire_dotdot + Kp3s * (theta3_desire - theta3motor) + Kd3s*(theta3_desire_dot-theta3_dot_f) + KI3*I3;
     }
     else
     {
-        *tau3 = J3*theta3_desire_dotdot + Kp3s * (theta3_desire - theta3motor) + Kd3s*(theta3_desire_dot-theta3_dot_f);
+        tau3_temp = Kp3 * error3 - Kd3 * theta3_dot_f;
+//        *tau3 = J3*theta3_desire_dotdot + Kp3s * (theta3_desire - theta3motor) + Kd3s*(theta3_desire_dot-theta3_dot_f);
         I3 = 0;
+        I3_update = 0;
     }
 
-    if (*tau3 > 5)
-        *tau3 = 5;
-    if (*tau3 < -5)
-        *tau3 = -5;
+    if (tau3_temp > 5)
+    {
+        tau3_temp = 5;
+        I3_update = I3;
+    }
+    if (tau3_temp < -5)
+    {
+        tau3_temp = -5;
+        I3_update = I3;
+    }
+    *tau3 = tau3_temp;
     error3_old = error3;
-
+    I3 = I3_update;
 
 
 
