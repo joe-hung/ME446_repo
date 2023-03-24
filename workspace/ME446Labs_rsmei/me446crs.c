@@ -286,6 +286,7 @@ void main(void)
     //
     InitPieCtrl();
 
+
     //
     // Disable CPU interrupts and clear all CPU interrupt flags:
     //
