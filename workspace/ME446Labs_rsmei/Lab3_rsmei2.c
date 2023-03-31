@@ -59,20 +59,31 @@ float Y =0;
 float Z =0;
 float temp_theta3 = 0;
 
-float Kp1 = 45;
-float Kp1s = 30;
-float Kp2 = 2000;
-float Kp2s = 40;
-float Kp3 = 2500;
-float Kp3s = 100;
+int control_select = 1;
 
-float Kd1 = 1.5;
-float Kd2 = 50;
-float Kd3 = 50;
+//float Kp1 = 45;
+float Kp1 = 30;
+float Kp2_1 = 2000;
+//float Kp2s = 40;
+float Kp3_1 = 6000;
+//float Kp3s = 100;
 
-float Kd1s = 2.5;
-float Kd2s = 1.5;
-float Kd3s = 1.5;
+
+//float Kp1_1 = 45;
+//float Kp1s = 30;
+float Kp2_0 = 50;
+//float Kp2s = 40;
+float Kp3_0 = 100;
+//float Kp3s = 100;
+
+//float Kd1 = 1.5;
+float Kd2_1 = 60;
+float Kd3_1 = 90;
+
+float Kd2_0 = 2;
+float Kd3_0 = 1.5;
+
+float Kd1 = 2.5;
  //Kp3s: short move
 
 float KI1 = 450;
@@ -143,6 +154,10 @@ float u_fric1 = 0;
 float u_fric2 = 0;
 float u_fric3 = 0;
 
+float u_fric1_adjust = 0.8;
+float u_fric2_adjust = 0.8;
+float u_fric3_adjust = 0.8;
+
 float min_V1 = 0.1;
 float min_V2 = 0.05;
 float min_V3 = 0.05;
@@ -181,6 +196,66 @@ float cos3 = 0;
 
 float a2 = 0;
 float a3 = 0;
+
+float mystep2 = 0;
+float mystep3 = 0;
+
+
+typedef struct steptraj_s {
+    long double b[4];
+    long double a[4];
+    long double xk[4];
+    long double yk[4];
+    float qd_old;
+    float qddot_old;
+    int size;
+} steptraj_t;
+
+steptraj_t trajectory1 = {3.2275698538759592e-06L,9.6827095616278783e-06L,9.6827095616278783e-06L,3.2275698538759592e-06L,
+                          1.0000000000000000e+00L,-2.9113300492610836e+00L,2.8252808852435143e+00L,-9.1392501542359983e-01L,
+                          0,0,0,0,
+                          0,0,0,0,
+                          0,
+                          0,
+                          4};
+
+steptraj_t trajectory2 = {3.2275698538759592e-06L,9.6827095616278783e-06L,9.6827095616278783e-06L,3.2275698538759592e-06L,
+                          1.0000000000000000e+00L,-2.9113300492610836e+00L,2.8252808852435143e+00L,-9.1392501542359983e-01L,
+                          0,0,0,0,
+                          0,0,0,0,
+                          0,
+                          0,
+                          4};
+
+steptraj_t trajectory3 = {3.2275698538759592e-06L,9.6827095616278783e-06L,9.6827095616278783e-06L,3.2275698538759592e-06L,
+                          1.0000000000000000e+00L,-2.9113300492610836e+00L,2.8252808852435143e+00L,-9.1392501542359983e-01L,
+                          0,0,0,0,
+                          0,0,0,0,
+                          0,
+                          0,
+                          4};
+// this function must be called every 1ms.
+void implement_discrete_tf(steptraj_t *traj, float step, float *qd, float *qd_dot, float *qd_ddot) {
+    int i = 0;
+
+    traj->xk[0] = step;
+    traj->yk[0] = traj->b[0]*traj->xk[0];
+    for (i = 1;i<traj->size;i++) {
+        traj->yk[0] = traj->yk[0] + traj->b[i]*traj->xk[i] - traj->a[i]*traj->yk[i];
+    }
+
+    for (i = (traj->size-1);i>0;i--) {
+        traj->xk[i] = traj->xk[i-1];
+        traj->yk[i] = traj->yk[i-1];
+    }
+
+    *qd = traj->yk[0];
+    *qd_dot = (*qd - traj->qd_old)*1000;  //0.001 sample period
+    *qd_ddot = (*qd_dot - traj->qddot_old)*1000;
+
+    traj->qd_old = *qd;
+    traj->qddot_old = *qd_dot;
+}
 
 
 void cubic(float t)
@@ -272,6 +347,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 //    *tau2 = 0;
 //    *tau3 = 0;
 
+    // part1
 //    if ((mycount%1000)==0) {
 //            if(theta1_desire > 0.05)
 //                theta1_desire = 0;
@@ -290,10 +366,34 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 //
 //        }
 
+    // part2 3
+//    if ((mycount%4000)==0) {
+//            if(mystep2 > 0.4)
+//                mystep2 = 0.25;
+//            else
+//                mystep2 = 0.85;
+//
+//            if(mystep3 < 0.1)
+//                mystep3 = 0.3;
+//            else
+//                mystep3 = -0.3;
+//
+//
+//        }
+    if ((mycount%4000)==0) {
+            if(mystep2 > 0.1)
+                mystep2 = 0;
+            else
+                mystep2 = 0.52;
+        }
+
+    implement_discrete_tf(&trajectory1, mystep2, &theta1_desire, &theta1_desire_dot, &theta1_desire_dotdot);
+    implement_discrete_tf(&trajectory2, mystep2, &theta2_desire, &theta2_desire_dot, &theta2_desire_dotdot);
+    implement_discrete_tf(&trajectory3, mystep2, &theta3_desire, &theta3_desire_dot, &theta3_desire_dotdot);
 
 //    fun( (mycount%10000)*0.001*2*PI/10 );
 
-    cubic(mycount%2000/1000.0);
+//    cubic(mycount%2000/1000.0);
     //Motor torque limitation(Max: 5 Min: -5)
 
     // save past states
@@ -340,19 +440,8 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 
     error1 = theta1_desire - theta1motor;
 //    I1_update = I1 + 0.001*(error1 + error1_old)/2.0;
-    if (fabs(error1) <  ethresh1)
-    {
-
-//        tau1_temp = Kp1s * error1 - Kd1s * theta1_dot_f;     // + KI1*I1_update;
-        tau1_temp = J1*theta1_desire_dotdot + Kp1s * (theta1_desire - theta1motor) + Kd1s*(theta1_desire_dot-theta1_dot_f); // + KI1*I1;
-    }
-    else
-    {
 //        tau1_temp = Kp1 * error1 - Kd1 * theta1_dot_f;
-        tau1_temp = J1*theta1_desire_dotdot + Kp1s * (theta1_desire - theta1motor) + Kd1s*(theta1_desire_dot-theta1_dot_f);
-        I1 = 0;
-        I1_update = 0;
-    }
+    tau1_temp = J1*theta1_desire_dotdot + Kp1 * (theta1_desire - theta1motor) + Kd1*(theta1_desire_dot-theta1_dot_f);
 
     if(theta1_dot_f > min_V1)
     {
@@ -367,7 +456,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
         u_fric1 = slope_bet_min1*theta1_dot_f;
     }
 
-    tau1_temp += u_fric1;
+    tau1_temp += u_fric1*u_fric1_adjust;
 
 
     if (tau1_temp > 5)
@@ -400,15 +489,19 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 //        I2_update = 0;
 //    }
 
-    a2 = theta2_desire_dotdot + Kp2*(theta2_desire - theta2motor) + Kd2*(theta2_desire_dot-theta2_dot_f);
-    a3 = theta3_desire_dotdot + Kp3*(theta3_desire - theta3motor) + Kd3*(theta3_desire_dot-theta3_dot_f);
+    a2 = theta2_desire_dotdot + Kp2_1*(theta2_desire - theta2motor) + Kd2_1*(theta2_desire_dot-theta2_dot_f);
+    a3 = theta3_desire_dotdot + Kp3_1*(theta3_desire - theta3motor) + Kd3_1*(theta3_desire_dot-theta3_dot_f);
     sin32 = sin(theta3motor - theta2motor);
     cos32 = cos(theta3motor - theta2motor);
     sin2 = sin(theta2motor);
     sin3 = sin(theta3motor);
     cos3 = cos(theta3motor);
 
-    tau2_temp = p1*a2 - p3*sin32*a3 + 0 - p3*cos32*theta3_dot_f*theta3_dot_f - p4*GRAV*sin2;
+    if(control_select == 1)
+        tau2_temp = p1*a2 - p3*sin32*a3 + 0 - p3*cos32*theta3_dot_f*theta3_dot_f - p4*GRAV*sin2;
+    else
+        tau2_temp = J2*theta2_desire_dotdot + Kp2_0 * (theta2_desire - theta2motor) + Kd2_0*(theta2_desire_dot-theta2_dot_f);
+
     if(theta2_dot_f > min_V2)
     {
         u_fric2 = Viscous_positive2*theta2_dot_f+Coulomb_positive2;
@@ -422,7 +515,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
         u_fric2 = slope_bet_min2*theta2_dot_f;
     }
 
-    tau2_temp += u_fric2;
+    tau2_temp += u_fric2*u_fric2_adjust;
 
     if (tau2_temp > 5)
     {
@@ -453,8 +546,10 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 //        I3 = 0;
 //        I3_update = 0;
 //    }
-
-    tau3_temp = -p3*sin32*a2 + p2*a3 + p3*cos32*theta2_dot_f*theta2_dot_f + 0 - p5*GRAV*cos3;
+    if(control_select == 1)
+        tau3_temp = -p3*sin32*a2 + p2*a3 + p3*cos32*theta2_dot_f*theta2_dot_f + 0 - p5*GRAV*cos3;
+    else
+        tau3_temp = J3*theta3_desire_dotdot + Kp3_0 * (theta3_desire - theta3motor) + Kd3_0*(theta3_desire_dot-theta3_dot_f);
 
     if(theta3_dot_f > min_V3)
     {
@@ -470,7 +565,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     }
 
 
-    tau3_temp += u_fric3;
+    tau3_temp += u_fric3*u_fric3_adjust;
 
     if (tau3_temp > 5)
     {
@@ -497,9 +592,9 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     printtheta2DH = theta2motor - PI/2.0;
     printtheta3DH = theta3motor - theta2motor + PI/2.0;
 
-    Simulink_PlotVar1 = theta3motor; //
-    Simulink_PlotVar2 = theta3_desire;
-    Simulink_PlotVar3 = theta2motor;
+    Simulink_PlotVar1 = error1; //
+    Simulink_PlotVar2 = error2;
+    Simulink_PlotVar3 = error3;
     Simulink_PlotVar4 = theta2_desire;
     float theta_1 = printtheta1DH;
     float theta_2 = printtheta2DH;
