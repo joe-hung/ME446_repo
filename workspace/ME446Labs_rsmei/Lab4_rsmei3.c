@@ -63,9 +63,9 @@ float Kdx = 25;
 float Kdy = 25;
 float Kdz = 25;
 
-float Kpx_n = 150;
+float Kpx_n = 350;
 float Kpy_n = 350;
-float Kpz_n = 350;
+float Kpz_n = 300;
 
 float Kdx_n = 25;
 float Kdy_n = 25;
@@ -210,7 +210,7 @@ float cosx = 0;
 float sinx = 0;
 float cosy = 0;
 float siny = 0;
-float thetaz = PI/4.0;
+float thetaz = -PI/4.0;
 float thetax = 0;
 float thetay = 0;
 float R11 = 0;
@@ -247,10 +247,33 @@ float Fz_w = 0;
 float Fz_cmd = 0;
 float Kt = 6;
 
+// desired point 1
+float p1x = 0.2;
+float p1y = 0.2;
+float p1z = 0.254;
+
+// desired point 2
+float p2x = 0.3;
+float p2y = 0.3;
+float p2z = 0.254;
+
+// difference between 2 points
+float dx = 0;
+float dy = 0;
+float dz = 0;
+
+// desire velocity for line following
+float v_desire = 0.08;
+
+float t_start = 0;
+float t_total = 0;
+
+float t = 0;
+int state = 0;
+
+// Line trajectory function
 void Line(float t)
 {
-    float t_total = 2;
-    float t_start = 0;
 
     float xa = 0;
     float ya = 0;
@@ -259,37 +282,55 @@ void Line(float t)
     float xb = 0;
     float yb = 0;
     float zb = 0;
-
-    if(t < 2)
+    // assign desired points according to state
+    if (state == 0)
     {
-        t_start = 0;
-        xa = 0.254;
-        ya = 0.254;
-        za = 0.254;
+        xa = p1x;
+        ya = p1y;
+        za = p1z;
 
-        xb = 0.264;
-        yb = 0.264;
-        zb = 0.254;
-
-        x_desire = (xb - xa)*(t - t_start)/t_total + xa;
-        x_desire_dot = (xb - xa)/t_total;
-
-        y_desire = (yb - ya)*(t - t_start)/t_total + ya;
-        y_desire_dot = (yb - ya)/t_total;
-
-        z_desire = (zb - za)*(t - t_start)/t_total + za;
-        z_desire_dot = (zb - za)/t_total;
+        xb = p2x;
+        yb = p2y;
+        zb = p2z;
     }
     else
     {
-        x_desire = 0.264;
-        y_desire = 0.264;
-        z_desire = 0.254;
+        xa = p2x;
+        ya = p2y;
+        za = p2z;
 
-        x_desire_dot = 0;
-        y_desire_dot = 0;
-        z_desire_dot = 0;
+        xb = p1x;
+        yb = p1y;
+        zb = p1z;
     }
+    // if we reach desired point, then current t - t start will reach t_total
+    // change state
+    if((t - t_start) >= t_total)
+    {
+        t_start = t;
+        if (state == 0)
+            state = 1;
+        else
+            state = 0;
+    }
+    // calculate difference between point a and b
+    dx = xb - xa;
+    dy = yb - ya;
+    dz = zb - za;
+    // calculate t_total through (total distance)/velocity
+    t_total = sqrt(dx*dx + dy*dy + dz*dz)/v_desire;
+
+
+    // calculate desire x y z and desire x_dot y_dot z_dot
+    x_desire = dx*(t - t_start)/t_total + xa;
+    x_desire_dot = dx/t_total;
+
+    y_desire = dy*(t - t_start)/t_total + ya;
+    y_desire_dot = dy/t_total;
+
+    z_desire = dz*(t - t_start)/t_total + za;
+    z_desire_dot = dz/t_total;
+
 }
 
 // This function is called every 1 ms
@@ -317,8 +358,12 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
         GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1; // Blink LED on Control Card
         GpioDataRegs.GPBTOGGLE.bit.GPIO60 = 1; // Blink LED on Emergency Stop Box
     }
+    // calculate current time
+    t = mycount*0.001;
+    // calculate desire trajectory
+    Line(t);
 
-    Line(mycount/1000.0);
+
 
     // state
     // Rotation zxy and its Transpose
@@ -378,21 +423,24 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     z_dot_old = z_dot_f;
     z_old = Z;
 
+    // part 2 force in world frame
 //    Fx = Kpx*(x_desire - X) + Kdx*(x_desire_dot - x_dot_f);
 //    Fy = Kpy*(y_desire - Y) + Kdy*(y_desire_dot - y_dot_f);
 //    Fz = Kpz*(z_desire - Z) + Kdz*(z_desire_dot - z_dot_f) + g_offset + Fz_cmd / Kt;
 
+    // force in N frame F_n = KP*(R^N_W)*(Desired point - current position) + KD*(R^N_W)*(Desired velocity - current velocity)
     Fx_n = Kpx_n*(RT_11*(x_desire - X) + RT_12*(y_desire - Y) + RT_13*(z_desire - Z)) + Kdx_n*(RT_11*(x_desire_dot - x_dot_f) + RT_12*(y_desire_dot - y_dot_f) + RT_13*(z_desire_dot - z_dot_f));
     Fy_n = Kpy_n*(RT_21*(x_desire - X) + RT_22*(y_desire - Y) + RT_23*(z_desire - Z)) + Kdy_n*(RT_21*(x_desire_dot - x_dot_f) + RT_22*(y_desire_dot - y_dot_f) + RT_23*(z_desire_dot - z_dot_f));
     Fz_n = Kpz_n*(RT_31*(x_desire - X) + RT_32*(y_desire - Y) + RT_33*(z_desire - Z)) + Kdz_n*(RT_31*(x_desire_dot - x_dot_f) + RT_32*(y_desire_dot - y_dot_f) + RT_33*(z_desire_dot - z_dot_f));
 
+    // force in world frame F_w = (R^W_N)*(F_n)
     Fx_w = R11*Fx_n + R12*Fy_n + R13*Fz_n;
     Fy_w = R21*Fx_n + R22*Fy_n + R23*Fz_n;
     Fz_w = R31*Fx_n + R32*Fy_n + R33*Fz_n;
 
 
 
-
+    // calculate joint velocity
     theta1_dot = (theta1motor - theta1_old) / 0.001;
     theta1_dot_f = (theta1_dot + theta1_dot_old + theta1_dot_oldold)/3.0;
     theta1_dot_oldold = theta1_dot_old;
@@ -413,9 +461,26 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     theta3_old = theta3motor;
 
 
-//    tau1_temp = JT_11*Fx + JT_12*Fy + JT_13*Fz;
-    tau1_temp = JT_11*Fx_w + JT_12*Fy_w + JT_13*Fz_w;
 
+    //******************************************//
+    //******** Part 2 Feedforward Force ********//
+    //********         tau = JT*F       ********//
+    //******************************************//
+//    tau1_temp = JT_11*Fx + JT_12*Fy + JT_13*Fz;
+//    tau2_temp = JT_21*Fx + JT_22*Fy + JT_23*Fz;
+//    tau3_temp = JT_31*Fx + JT_32*Fy + JT_33*Fz;
+
+
+
+    /////////////////////////////////////////////
+    /////// Part 3  Impendence Control //////////
+    /////////////////////////////////////////////
+    //tau = JT*F_w
+    tau1_temp = JT_11*Fx_w + JT_12*Fy_w + JT_13*Fz_w;
+    tau2_temp = JT_21*Fx_w + JT_22*Fy_w + JT_23*Fz_w;
+    tau3_temp = JT_31*Fx_w + JT_32*Fy_w + JT_33*Fz_w;
+
+    // calculate friction
     if(theta1_dot_f > min_V1)
     {
         u_fric1 = Viscous_positive1*theta1_dot_f+Coulomb_positive1;
@@ -428,22 +493,6 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     {
         u_fric1 = slope_bet_min1*theta1_dot_f;
     }
-
-    tau1_temp += u_fric1*u_fric1_adjust;
-
-
-    if (tau1_temp > 5)
-    {
-        tau1_temp = 5;
-    }
-    if (tau1_temp < -5)
-    {
-        tau1_temp = -5;
-    }
-    *tau1 = tau1_temp;
-
-//    tau2_temp = JT_21*Fx + JT_22*Fy + JT_23*Fz;
-    tau2_temp = JT_21*Fx_w + JT_22*Fy_w + JT_23*Fz_w;
 
     if(theta2_dot_f > min_V2)
     {
@@ -458,21 +507,6 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
         u_fric2 = slope_bet_min2*theta2_dot_f;
     }
 
-    tau2_temp += u_fric2*u_fric2_adjust;
-
-    if (tau2_temp > 5)
-    {
-        tau2_temp = 5;
-    }
-    if (tau2_temp < -5)
-    {
-        tau2_temp = -5;
-    }
-    *tau2 = tau2_temp;
-
-//    tau3_temp = JT_31*Fx + JT_32*Fy + JT_33*Fz;
-    tau3_temp = JT_31*Fx_w + JT_32*Fy_w + JT_33*Fz_w;
-
     if(theta3_dot_f > min_V3)
     {
         u_fric3 = Viscous_positive3*theta3_dot_f+Coulomb_positive3;
@@ -486,8 +520,31 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
         u_fric3 = slope_bet_min3*theta3_dot_f;
     }
 
-
+    //friction compensation
+    tau1_temp += u_fric1*u_fric1_adjust;
+    tau2_temp += u_fric2*u_fric2_adjust;
     tau3_temp += u_fric3*u_fric3_adjust;
+
+    // torque saturation
+    if (tau1_temp > 5)
+    {
+        tau1_temp = 5;
+    }
+    if (tau1_temp < -5)
+    {
+        tau1_temp = -5;
+    }
+    *tau1 = tau1_temp;
+
+    if (tau2_temp > 5)
+    {
+        tau2_temp = 5;
+    }
+    if (tau2_temp < -5)
+    {
+        tau2_temp = -5;
+    }
+    *tau2 = tau2_temp;
 
     if (tau3_temp > 5)
     {
