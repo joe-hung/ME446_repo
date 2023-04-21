@@ -161,7 +161,7 @@ float min_V1 = 0.1;
 float min_V2 = 0.05;
 float min_V3 = 0.05;
 
-// joint Viscous friction coefficient
+// joint Viscous friction
 float Viscous_positive1 = 0.18;
 float Viscous_positive2 = 0.18;
 float Viscous_positive3 = 0.23;
@@ -170,7 +170,7 @@ float Viscous_negative1 = 0.16;
 float Viscous_negative2 = 0.17;
 float Viscous_negative3 = 0.25;
 
-// joint Coulomb friction coefficient
+// joint Coulomb friction
 float Coulomb_positive1 = 0.3637;
 float Coulomb_positive2 = 0.3;
 float Coulomb_positive3 = 0.3;
@@ -179,7 +179,7 @@ float Coulomb_negative1 = -0.45;
 float Coulomb_negative2 = -0.35;
 float Coulomb_negative3 = -0.3;
 
-// joint static friction slope coefficient
+// joint static friction slope
 float slope_bet_min1 = 3.6;
 float slope_bet_min2 = 3.6;
 float slope_bet_min3 = 3.6;

@@ -175,7 +175,7 @@
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="matlab/simulink5ms_plotAndGains_sldrt_win64/tlc"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="matlab/New folder"/>
-						<entry excluding="Lab3_rsmei2.c|Lab2_rsmei2.c|Lab1_rsmei.c|matlab|F28335.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Lab4_rsmei3.c|Lab3_rsmei2.c|Lab2_rsmei2.c|Lab1_rsmei.c|matlab|F28335.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
