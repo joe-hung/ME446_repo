@@ -1,10 +1,13 @@
 #include "math.h"
 #include "F28335Serial.h"
-
+#include <stdbool.h>
 #define PI          3.1415926535897932384626433832795
 #define TWOPI       6.283185307179586476925286766559
 #define HALFPI      1.5707963267948966192313216916398
 #define GRAV        9.81
+
+
+#define NUM_POINTS  10
 
 // These two offsets are only used in the main file user_CRSRobot.c  You just need to create them here and find the correct offset and then these offset will adjust the encoder readings
 float offset_Enc2_rad = -0.454134671;//0;
@@ -41,6 +44,18 @@ float Simulink_PlotVar2 = 0;
 float Simulink_PlotVar3 = 0;
 float Simulink_PlotVar4 = 0;
 
+typedef struct point_struct {
+    float xb;
+    float yb;
+    float zb;
+    float v;
+    float thz;
+    float mode;
+} points;
+
+points waypoint = {{},{}};
+
+
 // position of end-effector
 float X = 0;
 float Y = 0;
@@ -61,10 +76,19 @@ float Kpx_n = 350;
 float Kpy_n = 350;
 float Kpz_n = 300;
 
+// Kp in rotated frame N
+float Kpx_n_s = 50;
+float Kpy_n_s = 50;
+float Kpz_n_s = 50;
+
 // Kd in rotated frame N
 float Kdx_n = 25;
 float Kdy_n = 25;
 float Kdz_n = 25;
+
+float Kdx_n_s = 5;
+float Kdy_n_s = 5;
+float Kdz_n_s = 5;
 
 // desired end-effector position
 float x_desire = 0.254;
@@ -290,7 +314,7 @@ float t = 0;
 
 // flag for selecting Line trajectory
 int state = 0;
-
+bool FINISH = false;
 // Line trajectory function
 void Line(float t)
 {
@@ -357,9 +381,10 @@ void Line(float t)
     if((t - t_start) >= t_total)
     {
         t_start = t;
-        if (state == 0)
-            state = 1;
-        else
+        state++;
+        if (state == NUM_POINTS)
+            state = 0;
+        if (FINISH == true);
             state = 0;
     }
     // calculate difference between point a and b
@@ -372,15 +397,29 @@ void Line(float t)
 
 
     // calculate desire x y z and desire x_dot y_dot z_dot
-    x_desire = dx*(t - t_start)/t_total + xa;
-    x_desire_dot = dx/t_total;
 
-    y_desire = dy*(t - t_start)/t_total + ya;
-    y_desire_dot = dy/t_total;
+    if(t_total < 0.00001)
+    {
+        x_desire = xa;
+        x_desire_dot = 0;
 
-    z_desire = dz*(t - t_start)/t_total + za;
-    z_desire_dot = dz/t_total;
+        y_desire = ya;
+        y_desire_dot = 0;
 
+        z_desire = za;
+        z_desire_dot = 0;
+    }
+    else
+    {
+        x_desire = dx*(t - t_start)/t_total + xa;
+        x_desire_dot = dx/t_total;
+
+        y_desire = dy*(t - t_start)/t_total + ya;
+        y_desire_dot = dy/t_total;
+
+        z_desire = dz*(t - t_start)/t_total + za;
+        z_desire_dot = dz/t_total;
+    }
 }
 
 // This function is called every 1 ms
