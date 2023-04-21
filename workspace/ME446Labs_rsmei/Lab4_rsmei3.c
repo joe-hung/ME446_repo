@@ -6,7 +6,8 @@
 #define HALFPI      1.5707963267948966192313216916398
 #define GRAV        9.81
 
-// These two offsets are only used in the main file user_CRSRobot.c  You just need to create them here and find the correct offset and then these offset will adjust the encoder readings
+// These two offsets are only used in the main file user_CRSRobot.c
+// You just need to create them here and find the correct offset and then these offset will adjust the encoder readings
 float offset_Enc2_rad = -0.454134671;//0;
 float offset_Enc3_rad = 0.24347343;//0;
 
