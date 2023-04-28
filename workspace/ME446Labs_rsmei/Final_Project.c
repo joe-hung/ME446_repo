@@ -7,7 +7,7 @@
 #define GRAV        9.81
 
 
-#define NUM_POINTS  10
+#define NUM_POINTS  11
 
 // These two offsets are only used in the main file user_CRSRobot.c  You just need to create them here and find the correct offset and then these offset will adjust the encoder readings
 float offset_Enc2_rad = -0.454134671;//0;
@@ -44,17 +44,40 @@ float Simulink_PlotVar2 = 0;
 float Simulink_PlotVar3 = 0;
 float Simulink_PlotVar4 = 0;
 
+float to_radian(float d)
+{
+    return d/180.0*PI;
+}
+
 typedef struct point_struct {
-    float xb;
-    float yb;
-    float zb;
+    float x;
+    float y;
+    float z;
     float v;
     float thz;
-    float mode;
+    int mode;
 } points;
+// mode of soft kp kd
+/*
+    1 -> x y soft
+    2 -> y soft
+    3 -> z soft
+    4 -> all stiff
+ */
 
-points waypoint = {{},{}};
-
+points waypoints[NUM_POINTS] = {{0.14, 0,     0.42, 0.08, 0, 4},
+                                {0.14, 0.2,   0.42, 0.08, 0, 4},
+                                {0.03, 0.345, 0.42, 0.08, 0, 4},
+                                {0.03, 0.345, 0.205, 0.08, 0, 4},
+                                {0.03, 0.345, 0.13, 0.08, 0, 1},
+                                {0.03, 0.345, 0.125, 0.01, 0, 1},
+                                {0.03, 0.345, 0.205, 0.08, 0, 4},
+                                {0.38, 0.10,  0.208, 0.08, 0, 4},
+                                {0.41, 0.06,  0.208, 0.08, -0.927293432, 2},
+                                {0.40, 0.045, 0.208, 0.08, 0.78539816, 2},
+                                {0.325, 0.053,  0.208, 0.08, -0.26179939, 2}}; //0.41   0.06   0.20
+points prev_point;
+points now_point;
 
 // position of end-effector
 float X = 0;
@@ -76,15 +99,25 @@ float Kpx_n = 350;
 float Kpy_n = 350;
 float Kpz_n = 300;
 
+
 // Kp in rotated frame N
-float Kpx_n_s = 50;
-float Kpy_n_s = 50;
-float Kpz_n_s = 50;
+float Kpx_n_h = 450;
+float Kpy_n_h = 450;
+float Kpz_n_h = 450;
+
+// Kp in rotated frame N
+float Kpx_n_s = 15;
+float Kpy_n_s = 15;
+float Kpz_n_s = 15;
 
 // Kd in rotated frame N
 float Kdx_n = 25;
 float Kdy_n = 25;
 float Kdz_n = 25;
+
+float Kdx_n_h = 25;
+float Kdy_n_h = 25;
+float Kdz_n_h = 25;
 
 float Kdx_n_s = 5;
 float Kdy_n_s = 5;
@@ -313,8 +346,18 @@ float t_total = 0;
 float t = 0;
 
 // flag for selecting Line trajectory
-int state = 0;
+int state = 1;
+int prev_state = 0;
 bool FINISH = false;
+
+// mode of soft kp kd
+/*
+    1 -> x y soft
+    2 -> y soft
+    3 -> z soft
+    4 -> all stiff
+ */
+int mode;
 // Line trajectory function
 void Line(float t)
 {
@@ -356,37 +399,70 @@ void Line(float t)
     float zb = 0;
 
     // assign desired points according to state
-    if (state == 0)
-    {
-        xa = p1x;
-        ya = p1y;
-        za = p1z;
+    prev_point = waypoints[prev_state];
+    now_point = waypoints[state];
 
-        xb = p2x;
-        yb = p2y;
-        zb = p2z;
+    xa = prev_point.x;
+    ya = prev_point.y;
+    za = prev_point.z;
+
+    xb = now_point.x;
+    yb = now_point.y;
+    zb = now_point.z;
+
+    v_desire = now_point.v;
+    thetaz = now_point.thz;
+    mode = now_point.mode;
+
+    // mode of soft kp kd
+    /*
+        1 -> x y soft
+        2 -> y soft
+        3 -> z soft
+        4 -> all stiff
+     */
+    if(mode == 1)
+    {
+        Kpx_n = Kpx_n_s;
+        Kpy_n = Kpy_n_s;
+        Kpz_n = Kpz_n_h;
+
+        Kdx_n = Kdx_n_s;
+        Kdy_n = Kdy_n_s;
+        Kdz_n = Kdz_n_h;
+    }
+    else if (mode == 2)
+    {
+        Kpx_n = Kpx_n_h;
+        Kpy_n = Kpy_n_s;
+        Kpz_n = Kpz_n_h;
+
+        Kdx_n = Kdx_n_h;
+        Kdy_n = Kdy_n_s;
+        Kdz_n = Kdz_n_h;
+    }
+    else if(mode == 3)
+    {
+        Kpx_n = Kpx_n_h;
+        Kpy_n = Kpy_n_h;
+        Kpz_n = Kpz_n_s;
+
+        Kdx_n = Kdx_n_h;
+        Kdy_n = Kdy_n_h;
+        Kdz_n = Kdz_n_s;
     }
     else
     {
-        xa = p2x;
-        ya = p2y;
-        za = p2z;
+        Kpx_n = Kpx_n_h;
+        Kpy_n = Kpy_n_h;
+        Kpz_n = Kpz_n_h;
 
-        xb = p1x;
-        yb = p1y;
-        zb = p1z;
+        Kdx_n = Kdx_n_h;
+        Kdy_n = Kdy_n_h;
+        Kdz_n = Kdz_n_h;
     }
-    // if we reach desired point, then current t - t start will reach t_total
-    // change state
-    if((t - t_start) >= t_total)
-    {
-        t_start = t;
-        state++;
-        if (state == NUM_POINTS)
-            state = 0;
-        if (FINISH == true);
-            state = 0;
-    }
+
+
     // calculate difference between point a and b
     dx = xb - xa;
     dy = yb - ya;
@@ -396,30 +472,26 @@ void Line(float t)
     t_total = sqrt(dx*dx + dy*dy + dz*dz)/v_desire;
 
 
+    // if we reach desired point, then current t - t start will reach t_total
+    // change state
+    if((t - t_start) >= t_total)
+    {
+        t_start = t;
+        prev_state = state;
+        state++;
+        if (state == NUM_POINTS)
+            state = NUM_POINTS - 1;
+    }
+
     // calculate desire x y z and desire x_dot y_dot z_dot
+    x_desire = dx*(t - t_start)/t_total + xa;
+    x_desire_dot = dx/t_total;
 
-    if(t_total < 0.00001)
-    {
-        x_desire = xa;
-        x_desire_dot = 0;
+    y_desire = dy*(t - t_start)/t_total + ya;
+    y_desire_dot = dy/t_total;
 
-        y_desire = ya;
-        y_desire_dot = 0;
-
-        z_desire = za;
-        z_desire_dot = 0;
-    }
-    else
-    {
-        x_desire = dx*(t - t_start)/t_total + xa;
-        x_desire_dot = dx/t_total;
-
-        y_desire = dy*(t - t_start)/t_total + ya;
-        y_desire_dot = dy/t_total;
-
-        z_desire = dz*(t - t_start)/t_total + za;
-        z_desire_dot = dz/t_total;
-    }
+    z_desire = dz*(t - t_start)/t_total + za;
+    z_desire_dot = dz/t_total;
 }
 
 // This function is called every 1 ms
@@ -682,6 +754,6 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
 
 void printing(void){
     serial_printf(&SerialA, "Motor        %6.2f %6.2f %6.2f   \n\r \n\r",printtheta1motor*180/PI,printtheta2motor*180/PI,printtheta3motor*180/PI);
-    serial_printf(&SerialA, "End-Effector %6.2f %6.2f %6.2f   \n\r \n\r",X,Y,Z);
+    serial_printf(&SerialA, "End-Effector %6.5f %6.5f %6.5f   \n\r \n\r",X,Y,Z);
 }
 
