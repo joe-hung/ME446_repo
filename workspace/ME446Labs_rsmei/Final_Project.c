@@ -7,7 +7,7 @@
 #define GRAV        9.81
 
 
-#define NUM_POINTS  11
+#define NUM_POINTS  20
 
 // These two offsets are only used in the main file user_CRSRobot.c  You just need to create them here and find the correct offset and then these offset will adjust the encoder readings
 float offset_Enc2_rad = -0.454134671;//0;
@@ -65,17 +65,26 @@ typedef struct point_struct {
     4 -> all stiff
  */
 
-points waypoints[NUM_POINTS] = {{0.14, 0,     0.42, 0.08, 0, 4},
-                                {0.14, 0.2,   0.42, 0.08, 0, 4},
-                                {0.03, 0.345, 0.42, 0.08, 0, 4},
-                                {0.03, 0.345, 0.205, 0.08, 0, 4},
+points waypoints[NUM_POINTS] = {{0.13354, 0, 0.422, 0.15, 0, 4},    // home position
+                                {0.14, 0.172,   0.42, 0.15, 0, 4},    //
+                                {0.03, 0.345, 0.42, 0.15, 0, 4},    // point 2
+                                {0.03, 0.345, 0.205, 0.13, 0, 4},   //
                                 {0.03, 0.345, 0.13, 0.08, 0, 1},
-                                {0.03, 0.345, 0.125, 0.01, 0, 1},
+                                {0.03, 0.345, 0.126, 0.01, 0, 1},
                                 {0.03, 0.345, 0.205, 0.08, 0, 4},
-                                {0.38, 0.10,  0.208, 0.08, 0, 4},
-                                {0.41, 0.06,  0.208, 0.08, -0.927293432, 2},
-                                {0.40, 0.045, 0.208, 0.08, 0.78539816, 2},
-                                {0.325, 0.053,  0.208, 0.08, -0.26179939, 2}}; //0.41   0.06   0.20
+                                {0.167, 0.139, 0.312, 0.15, 0, 4},
+                                {0.373, 0.114,  0.215, 0.13, 0, 4},  // zigzag start
+                                {0.403, 0.06,  0.209, 0.08, -0.927293432, 2},
+                                {0.391, 0.040, 0.209, 0.08, 0.78539816, 2},
+                                {0.325, 0.050,  0.209, 0.08, -0.26179939, 2},
+                                {0.313, 0.034, 0.209, 0.08, 0.78539816 , 2},
+                                {0.375, -0.043, 0.209, 0.08,-0.927293432 , 2},  // zigzag out
+                                {0.375, -0.043, 0.30, 0.08, 0, 4},
+                                {0.230, 0.179, 0.34, 0.08, 0, 4},
+                                {0.230, 0.179, 0.287, 0.02, 0, 3},  // press egg 0.23011 0.17905 0.29709
+                                {0.230, 0.179, 0.2855, 0.00025, 0, 3},
+                                {0.230, 0.179, 0.34, 0.15, 0, 4}, // egg above
+                                {0.13354, 0, 0.422, 0.15, 0, 4}}; //0.41   0.06   0.20
 points prev_point;
 points now_point;
 
@@ -108,7 +117,7 @@ float Kpz_n_h = 450;
 // Kp in rotated frame N
 float Kpx_n_s = 15;
 float Kpy_n_s = 15;
-float Kpz_n_s = 15;
+float Kpz_n_s = 20;
 
 // Kd in rotated frame N
 float Kdx_n = 25;
@@ -338,6 +347,9 @@ float dz = 0;
 // desire velocity for line following
 float v_desire = 0.08;
 
+float egg_p = 1.1307;
+float  g_offset = 0;
+
 // Line trajectory time variable
 float t_start = 0;
 float t_total = 0;
@@ -421,6 +433,7 @@ void Line(float t)
         3 -> z soft
         4 -> all stiff
      */
+    g_offset = 0;
     if(mode == 1)
     {
         Kpx_n = Kpx_n_s;
@@ -450,6 +463,8 @@ void Line(float t)
         Kdx_n = Kdx_n_h;
         Kdy_n = Kdy_n_h;
         Kdz_n = Kdz_n_s;
+
+        g_offset = egg_p;
     }
     else
     {
@@ -663,7 +678,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     // partA    :   force in N frame F_n = KP*(R^N_W)*(Desired point - current position) + KD*(R^N_W)*(Desired velocity - current velocity)
     Fx_n = Kpx_n*(RT_11*(x_desire - X) + RT_12*(y_desire - Y) + RT_13*(z_desire - Z)) + Kdx_n*(RT_11*(x_desire_dot - x_dot_f) + RT_12*(y_desire_dot - y_dot_f) + RT_13*(z_desire_dot - z_dot_f));
     Fy_n = Kpy_n*(RT_21*(x_desire - X) + RT_22*(y_desire - Y) + RT_23*(z_desire - Z)) + Kdy_n*(RT_21*(x_desire_dot - x_dot_f) + RT_22*(y_desire_dot - y_dot_f) + RT_23*(z_desire_dot - z_dot_f));
-    Fz_n = Kpz_n*(RT_31*(x_desire - X) + RT_32*(y_desire - Y) + RT_33*(z_desire - Z)) + Kdz_n*(RT_31*(x_desire_dot - x_dot_f) + RT_32*(y_desire_dot - y_dot_f) + RT_33*(z_desire_dot - z_dot_f));
+    Fz_n = Kpz_n*(RT_31*(x_desire - X) + RT_32*(y_desire - Y) + RT_33*(z_desire - Z)) + Kdz_n*(RT_31*(x_desire_dot - x_dot_f) + RT_32*(y_desire_dot - y_dot_f) + RT_33*(z_desire_dot - z_dot_f)) +  g_offset;
 
     // partB    :   force in world frame F_w = (R^W_N)*(F_n)
     Fx_w = R11*Fx_n + R12*Fy_n + R13*Fz_n;
