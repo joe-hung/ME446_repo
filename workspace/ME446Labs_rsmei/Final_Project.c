@@ -468,7 +468,7 @@ void Line(float t)
         Kdy_n = Kdy_n_h;
         Kdz_n = Kdz_n_s;
 
-        // at the mode of pressing egg, assign gravity compenstation
+        // at the mode of pressing egg, assign gravity compensation
         g_offset = egg_p;
     }
     else
@@ -644,29 +644,8 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     theta3_old = theta3motor;
 
 
-    //******************************************//
-    //******** Part 2 Feedforward Force ********//
-    //******************************************//
-    // part 2 force in world frame
-    /*
-        Calculating force in world frame given desired position and velocity
-        Feedfward force control     :   F = Kp*(p_desire - p) + Kd*(v_desire - v)
-
-        Calculating joint torque given force in world frame
-        Joint torque                :   tau = JT*F
-
-    */
-//    Fx = Kpx*(x_desire - X) + Kdx*(x_desire_dot - x_dot_f);
-//    Fy = Kpy*(y_desire - Y) + Kdy*(y_desire_dot - y_dot_f);
-//    Fz = Kpz*(z_desire - Z) + Kdz*(z_desire_dot - z_dot_f) + g_offset + Fz_cmd / Kt;
-//    tau1_temp = JT_11*Fx + JT_12*Fy + JT_13*Fz;
-//    tau2_temp = JT_21*Fx + JT_22*Fy + JT_23*Fz;
-//    tau3_temp = JT_31*Fx + JT_32*Fy + JT_33*Fz;
-
-
-
     //********************************************//
-    //******** Part 3  Impendence Control ********//
+    //************ Impendence Control ************//
     //********************************************//
     /*
         Calculating joint torque that weaken impedence in specific axes of N frame
