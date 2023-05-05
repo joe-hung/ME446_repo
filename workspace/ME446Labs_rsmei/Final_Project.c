@@ -44,10 +44,6 @@ float Simulink_PlotVar2 = 0;
 float Simulink_PlotVar3 = 0;
 float Simulink_PlotVar4 = 0;
 
-float to_radian(float d)
-{
-    return d/180.0*PI;
-}
 
 typedef struct point_struct {
     float x;
@@ -57,34 +53,34 @@ typedef struct point_struct {
     float thz;
     int mode;
 } points;
-// mode of soft kp kd
+
 /*
+    mode of soft kp kd
     1 -> x y soft
     2 -> y soft
     3 -> z soft
     4 -> all stiff
- */
-
-points waypoints[NUM_POINTS] = {{0.13354, 0, 0.422, 0.15, 0, 4},    // home position
-                                {0.14, 0.172,   0.42, 0.15, 0, 4},    //
-                                {0.03, 0.345, 0.42, 0.15, 0, 4},    // point 2
-                                {0.03, 0.345, 0.205, 0.13, 0, 4},   //
-                                {0.03, 0.345, 0.13, 0.08, 0, 1},
-                                {0.03, 0.345, 0.126, 0.01, 0, 1},
-                                {0.03, 0.345, 0.205, 0.08, 0, 4},
-                                {0.167, 0.139, 0.312, 0.15, 0, 4},
-                                {0.373, 0.114,  0.215, 0.13, 0, 4},  // zigzag start
-                                {0.403, 0.06,  0.209, 0.08, -0.927293432, 2},
-                                {0.391, 0.040, 0.209, 0.08, 0.78539816, 2},
-                                {0.325, 0.050,  0.209, 0.08, -0.26179939, 2},
-                                {0.313, 0.034, 0.209, 0.08, 0.78539816 , 2},
-                                {0.375, -0.043, 0.209, 0.08,-0.927293432 , 2},  // zigzag out
-                                {0.375, -0.043, 0.30, 0.08, 0, 4},
-                                {0.230, 0.179, 0.34, 0.08, 0, 4},
-                                {0.230, 0.179, 0.287, 0.02, 0, 3},  // press egg 0.23011 0.17905 0.29709
-                                {0.230, 0.179, 0.2855, 0.00025, 0, 3},
-                                {0.230, 0.179, 0.34, 0.15, 0, 4}, // egg above
-                                {0.13354, 0, 0.422, 0.15, 0, 4}}; //0.41   0.06   0.20
+ */                         //    X          Y           Z        Velocity   rotation(radian)  mode
+points waypoints[NUM_POINTS] = {{0.13354,       0,      0.422,      0.15,               0,      4},       // point 1         (home position)
+                                {0.14,      0.172,       0.42,      0.15,               0,      4},       // point 1.5
+                                {0.03,      0.345,       0.42,      0.15,               0,      4},       // point 2         (above hole)
+                                {0.03,      0.345,      0.205,      0.13,               0,      4},       // point 2.5       (above hole)
+                                {0.03,      0.345,       0.13,      0.08,               0,      1},       // point 3         (insert into hole)
+                                {0.03,      0.345,      0.126,      0.01,               0,      1},       // point 4         (insert into hole)
+                                {0.03,      0.345,      0.205,      0.08,               0,      4},       // point 2.5       (above hole)
+                                {0.167,     0.139,      0.312,      0.15,               0,      4},       // point 4.5
+                                {0.373,     0.114,      0.215,      0.13,               0,      4},       // point 5         (zigzag start)
+                                {0.403,      0.06,      0.209,      0.08,    -0.927293432,      2},       // point 5.5(a)
+                                {0.391,     0.040,      0.209,      0.08,      0.78539816,      2},       // point 5.5(b)
+                                {0.325,     0.050,      0.209,      0.08,     -0.26179939,      2},       // point 6(a)
+                                {0.313,     0.034,      0.209,      0.08,      0.78539816,      2},       // point 6(b)
+                                {0.375,    -0.043,      0.209,      0.08,    -0.927293432,      2},       // point 7         (zigzag out)
+                                {0.375,    -0.043,       0.30,      0.08,               0,      4},       // point 7.5(a)    (above point 7)
+                                {0.230,     0.179,       0.34,      0.15,               0,      4},       // point 7.5(b)    (egg above)
+                                {0.230,     0.179,      0.286,      0.02,               0,      3},       // point 8         (press egg)
+                                {0.230,     0.179,     0.2855,   0.00025,               0,      3},       // point 9         (press egg)
+                                {0.230,     0.179,       0.34,      0.15,               0,      4},       // point 10        (egg above)
+                                {0.13354,       0,      0.422,      0.15,               0,      4}};      // point 1         (home position)
 points prev_point;
 points now_point;
 
@@ -109,25 +105,27 @@ float Kpy_n = 350;
 float Kpz_n = 300;
 
 
-// Kp in rotated frame N
+// stiff Kp in rotated frame N
 float Kpx_n_h = 450;
 float Kpy_n_h = 450;
 float Kpz_n_h = 450;
 
-// Kp in rotated frame N
+// soft Kp in rotated frame N
 float Kpx_n_s = 15;
 float Kpy_n_s = 15;
-float Kpz_n_s = 20;
+float Kpz_n_s = 50;
 
 // Kd in rotated frame N
 float Kdx_n = 25;
 float Kdy_n = 25;
 float Kdz_n = 25;
 
+// stiff Kd in rotated frame N
 float Kdx_n_h = 25;
 float Kdy_n_h = 25;
 float Kdz_n_h = 25;
 
+// soft Kd in rotated frame N
 float Kdx_n_s = 5;
 float Kdy_n_s = 5;
 float Kdz_n_s = 5;
@@ -347,7 +345,8 @@ float dz = 0;
 // desire velocity for line following
 float v_desire = 0.08;
 
-float egg_p = 1.1307;
+// gravity compensation when pressing egg
+float egg_p = 1.1323;
 float  g_offset = 0;
 
 // Line trajectory time variable
@@ -360,16 +359,18 @@ float t = 0;
 // flag for selecting Line trajectory
 int state = 1;
 int prev_state = 0;
-bool FINISH = false;
 
-// mode of soft kp kd
+
+
 /*
     1 -> x y soft
     2 -> y soft
     3 -> z soft
     4 -> all stiff
  */
+// mode of soft kp kd
 int mode;
+
 // Line trajectory function
 void Line(float t)
 {
@@ -379,8 +380,8 @@ void Line(float t)
         input args:
                      t  : time in second
 
-        Tf required, swap the initial points (xa,ya,za) to (xb.yb.zb) and proceed
-        with computing the component-wise differences delta_x, delta_y, delta_z.
+        Tf required, set the desired point (xb.yb.zb) as new (xa,ya,za) and get new (xb.yb.zb),
+        proceed with computing the component-wise differences delta_x, delta_y, delta_z.
 
         Based on the user-defined total speed v_total, calculate
         the x,y,z velocities and then use the following formula to
@@ -391,12 +392,11 @@ void Line(float t)
         z = dz/v*t + za
 
         If one of the ends of the straight line is reached,
-        the point xa,ya,za and xb,yb,zb must be swapped.
+        the point xa,ya,za and xb,yb,zb must be assigned qith new value.
 
         To that end, we track the value of an integer variable 'state'.
-        If state=0, we want to go from 'a' to 'b',
-        otherwise if state=1, we want to go from 'b' to 'a'.
-
+        we want to go from 'a' (waypoints[prev_state]) to 'b' (waypoints[state])
+        if state = NUM_POINTS, we have finished all points, and the robot arm will stay at the last point
         This switching depends on the difference (t-t_start)
 
     */
@@ -433,7 +433,11 @@ void Line(float t)
         3 -> z soft
         4 -> all stiff
      */
+
+    // unless it is at the mode of pressing egg, the gravity compensation will remain 0
     g_offset = 0;
+
+    // assign kp and kd according to mode
     if(mode == 1)
     {
         Kpx_n = Kpx_n_s;
@@ -464,6 +468,7 @@ void Line(float t)
         Kdy_n = Kdy_n_h;
         Kdz_n = Kdz_n_s;
 
+        // at the mode of pressing egg, assign gravity compenstation
         g_offset = egg_p;
     }
     else
@@ -678,6 +683,7 @@ void lab(float theta1motor,float theta2motor,float theta3motor,float *tau1,float
     // partA    :   force in N frame F_n = KP*(R^N_W)*(Desired point - current position) + KD*(R^N_W)*(Desired velocity - current velocity)
     Fx_n = Kpx_n*(RT_11*(x_desire - X) + RT_12*(y_desire - Y) + RT_13*(z_desire - Z)) + Kdx_n*(RT_11*(x_desire_dot - x_dot_f) + RT_12*(y_desire_dot - y_dot_f) + RT_13*(z_desire_dot - z_dot_f));
     Fy_n = Kpy_n*(RT_21*(x_desire - X) + RT_22*(y_desire - Y) + RT_23*(z_desire - Z)) + Kdy_n*(RT_21*(x_desire_dot - x_dot_f) + RT_22*(y_desire_dot - y_dot_f) + RT_23*(z_desire_dot - z_dot_f));
+    // add gravity compensation at z direction force in world frame
     Fz_n = Kpz_n*(RT_31*(x_desire - X) + RT_32*(y_desire - Y) + RT_33*(z_desire - Z)) + Kdz_n*(RT_31*(x_desire_dot - x_dot_f) + RT_32*(y_desire_dot - y_dot_f) + RT_33*(z_desire_dot - z_dot_f)) +  g_offset;
 
     // partB    :   force in world frame F_w = (R^W_N)*(F_n)
