@@ -306,17 +306,12 @@ float RT_33 = 0;
 // length of each link
 float L = 0.254;
 
-// force in world frame for part 2
-float Fx = 0;
-float Fy = 0;
-float Fz = 0;
-
-// force in N frame for part 3
+// force in N frame
 float Fx_n = 0;
 float Fy_n = 0;
 float Fz_n = 0;
 
-// force in world frame for part 3
+// force in world frame
 float Fx_w = 0;
 float Fy_w = 0;
 float Fz_w = 0;
