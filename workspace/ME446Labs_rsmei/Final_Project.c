@@ -61,26 +61,27 @@ typedef struct point_struct {
     3 -> z soft
     4 -> all stiff
  */                         //    X          Y           Z        Velocity   rotation(radian)  mode
-points waypoints[NUM_POINTS] = {{0.13354,       0,      0.422,      0.15,               0,      4},       // point 1         (home position)
-                                {0.14,      0.172,       0.42,      0.15,               0,      4},       // point 1.5
-                                {0.03,      0.345,       0.42,      0.15,               0,      4},       // point 2         (above hole)
-                                {0.03,      0.345,      0.205,      0.13,               0,      4},       // point 2.5       (above hole)
+points waypoints[NUM_POINTS] = {{0.13354,       0,      0.422,      0.5,               0,      4},       // point 1         (home position)
+                                {0.25236, 0.00006,    0.51031,      0.5,               0,      4},       // point 1.5
+                                {0.03,      0.345,       0.42,      0.5,               0,      4},       // point 2         (above hole)
+                                {0.03,      0.345,      0.205,      0.5,               0,      4},       // point 2.5       (above hole)
                                 {0.03,      0.345,       0.13,      0.08,               0,      1},       // point 3         (insert into hole)
                                 {0.03,      0.345,      0.126,      0.01,               0,      1},       // point 4         (insert into hole)
                                 {0.03,      0.345,      0.205,      0.08,               0,      4},       // point 2.5       (above hole)
-                                {0.167,     0.139,      0.312,      0.15,               0,      4},       // point 4.5
-                                {0.373,     0.114,      0.215,      0.13,               0,      4},       // point 5         (zigzag start)
-                                {0.403,      0.06,      0.209,      0.08,    -0.927293432,      2},       // point 5.5(a)
-                                {0.391,     0.040,      0.209,      0.08,      0.78539816,      2},       // point 5.5(b)
-                                {0.325,     0.050,      0.209,      0.08,     -0.26179939,      2},       // point 6(a)
-                                {0.313,     0.034,      0.209,      0.08,      0.78539816,      2},       // point 6(b)
-                                {0.375,    -0.043,      0.209,      0.08,    -0.927293432,      2},       // point 7         (zigzag out)
-                                {0.375,    -0.043,       0.30,      0.08,               0,      4},       // point 7.5(a)    (above point 7)
-                                {0.230,     0.179,       0.34,      0.15,               0,      4},       // point 7.5(b)    (egg above)
-                                {0.230,     0.179,      0.286,      0.02,               0,      3},       // point 8         (press egg)
-                                {0.230,     0.179,     0.2855,   0.00025,               0,      3},       // point 9         (press egg)
-                                {0.230,     0.179,       0.34,      0.15,               0,      4},       // point 10        (egg above)
-                                {0.13354,       0,      0.422,      0.15,               0,      4}};      // point 1         (home position)
+                                {0.167,     0.139,      0.312,      0.5,               0,      4},       // point 4.5
+                                {0.373,     0.114,      0.215,      0.26,               0,      4},       // point 5         (zigzag start)
+                                {0.403,      0.06,      0.209,      0.18,    -0.927293432,      2},       // point 5.5(a)
+                                {0.391,     0.040,      0.209,      0.18,      0.78539816,      2},       // point 5.5(b)
+                                {0.325,     0.050,      0.209,      0.18,     -0.26179939,      2},       // point 6(a)
+                                {0.313,     0.034,      0.209,      0.18,      0.78539816,      2},       // point 6(b)
+                                {0.375,    -0.043,      0.209,      0.18,    -0.927293432,      2},       // point 7         (zigzag out)
+                                {0.375,    -0.043,       0.30,      0.18,               0,      4},       // point 7.5(a)    (above point 7)
+                                {0.233,     0.179,       0.34,      0.5,               0,      4},       // point 7.5(b)    (egg above)
+                                {0.233,     0.179,      0.286,      0.02,               0,      3},       // point 8         (press egg)
+                                {0.233,     0.179,     0.2855,   0.00025,               0,      3},       // point 9         (press egg)
+                                {0.233,     0.179,       0.34,      0.5,               0,      4},       // point 10        (egg above)
+                                {0.25236, 0.00006,    0.51031,      0.5,               0,      4}};      // point 1         (home position) 0.25236 0.00006 0.51031
+
 points prev_point;
 points now_point;
 
@@ -113,7 +114,7 @@ float Kpz_n_h = 450;
 // soft Kp in rotated frame N
 float Kpx_n_s = 15;
 float Kpy_n_s = 15;
-float Kpz_n_s = 50;
+float Kpz_n_s = 30;
 
 // Kd in rotated frame N
 float Kdx_n = 25;
@@ -341,7 +342,7 @@ float dz = 0;
 float v_desire = 0.08;
 
 // gravity compensation when pressing egg
-float egg_p = 1.1323;
+float egg_p = 1.12;
 float  g_offset = 0;
 
 // Line trajectory time variable
